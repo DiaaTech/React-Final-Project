@@ -1,12 +1,44 @@
-import React from 'react'
-import { Form, Row, Col, Input, Button, Typography, message } from 'antd'
+import React, { useState } from 'react'
+import {
+  Form,
+  Row,
+  Col,
+  Input,
+  Button,
+  Typography,
+  message,
+  Upload,
+} from 'antd'
 import { useNavigate } from 'react-router-dom'
+import ImgCrop from 'antd-img-crop'
+import axios from 'axios'
 
 const Signup = () => {
   const [form] = Form.useForm() // which can be used to make forms
   const [messageApi, contextHolder] = message.useMessage()
   // for routing
   const navigate = useNavigate()
+
+  const [fileList, setFileList] = useState([])
+
+  // Image Uploading via Model Logic
+  const onImgChange = ({ fileList: newFileList }) => {
+    setFileList(newFileList)
+  }
+  const onPreview = async (file) => {
+    let src = file.url
+    if (!src) {
+      src = await new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.readAsDataURL(file.originFileObj)
+        reader.onload = () => resolve(reader.result)
+      })
+    }
+    const image = new Image()
+    image.src = src
+    const imgWindow = window.open(src)
+    imgWindow?.document.write(image.outerHTML)
+  }
 
   // Validator Password Length
   const validatePasswordLength = (_, value) => {
@@ -17,20 +49,45 @@ const Signup = () => {
   }
 
   // Signup Button Handler
-  const submitHandler = (values) => {
+  const submitHandler = async (values) => {
     // TODO: API CALL to my Server (Add a new user in Data for it's account)
     console.log(values)
-
-    // Timer
-    setTimeout(() => {
+    // check for file list
+    if (fileList.length === 0) {
       messageApi.open({
-        type: 'success',
-        content: 'Signup Completed Successfullyy!',
+        type: 'error',
+        content: 'Please Upload a Profile Picture!',
       })
-    }, 2000)
+      return
+    }
 
-    // Move Login
-    navigate('/login')
+    values.photo = fileList[0].originFileObj
+
+    console.log(values)
+
+    const res = await axios.post('http://localhost:3002/users/signup', values, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+      },
+    })
+    console.log(res)
+    if (res.data.status === 'success') {
+      // Timer
+      setTimeout(() => {
+        messageApi.open({
+          type: 'success',
+          content: 'Signup Completed Successfullyy!',
+        })
+      }, 2000)
+
+      navigate('/login')
+    } else {
+      messageApi.open({
+        type: 'error',
+        content: 'Something went wrong!',
+      })
+    }
   }
   return (
     <div>
@@ -81,51 +138,116 @@ const Signup = () => {
             }}
           >
             {/* Name of User */}
-            <Form.Item
-              name='name'
-              label='Name'
-              rules={[{ required: true, message: 'Please input your Name' }]}
-            >
-              <Input />
-            </Form.Item>
+            <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+              <ImgCrop rotate>
+                <Upload
+                  listType='picture-card'
+                  fileList={fileList}
+                  onChange={onImgChange}
+                  onPreview={onPreview}
+                  beforeUpload={() => false}
+                >
+                  {fileList.length < 1 && '+ Profile'}
+                </Upload>
+              </ImgCrop>
+            </div>
 
-            {/* Email of User */}
-            <Form.Item
-              name='email'
-              label='Email'
-              rules={[{ required: true, message: 'Please input your Email' }]}
-            >
-              <Input />
-            </Form.Item>
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name='name'
+                  label='Name'
+                  rules={[
+                    { required: true, message: 'Please input your Name' },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
 
-            {/* Password */}
+              <Col span={12}>
+                {/* Email of User */}
+                <Form.Item
+                  name='email'
+                  label='Email'
+                  rules={[
+                    { required: true, message: 'Please input your Email' },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name='phoneNo'
+                  label='Phone No'
+                  rules={[
+                    { required: true, message: 'Please input your Phone No' },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+
+              <Col span={12}>
+                {/* Age */}
+                <Form.Item
+                  name='age'
+                  label='Age'
+                  rules={[{ required: true, message: 'Please input your Age' }]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  name='password'
+                  label='Password'
+                  rules={[
+                    { required: true, message: 'Please input your Password' },
+                    {
+                      validator: validatePasswordLength,
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+              {/* Confirm Password */}
+              <Col span={12}>
+                <Form.Item
+                  name='passwordConfirm'
+                  label='Confirm Password'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Please input your Confirm Password',
+                    },
+                    {
+                      validator: validatePasswordLength,
+                    },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* About Me */}
             <Form.Item
-              name='password'
-              label='Password'
+              name='aboutMe'
+              label='About Me'
               rules={[
-                { required: true, message: 'Please input your Password' },
-                {
-                  validator: validatePasswordLength,
-                },
+                { required: true, message: 'Please input your About Me' },
               ]}
             >
-              <Input />
-            </Form.Item>
-            {/* Confirm Password */}
-            <Form.Item
-              name='passwordConfirm'
-              label='Confirm Password'
-              rules={[
-                {
-                  required: true,
-                  message: 'Please input your Confirm Password',
-                },
-                {
-                  validator: validatePasswordLength,
-                },
-              ]}
-            >
-              <Input />
+              <Input.TextArea />
             </Form.Item>
 
             <Form.Item>

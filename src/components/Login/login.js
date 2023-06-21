@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { useDispatch } from 'react-redux'
 import { login } from '../../redux/user'
+import axios from 'axios'
 
 const Login = () => {
   const [form] = Form.useForm() // which can be used to make forms
@@ -21,23 +22,37 @@ const Login = () => {
   }
 
   // Signup Button Handler
-  const submitHandler = (values) => {
+  const submitHandler = async (values) => {
     // TODO: API CALL to my Server (Add a new user in Data for it's account)
     console.log(values)
 
-    // Timer
-    setTimeout(() => {
+    //apical
+    const res = await axios.post('http://localhost:3002/users/login', {
+      email: values.email,
+      password: values.password,
+    })
+
+    if (res.data.status === 'success') {
+      // Timer
+      setTimeout(() => {
+        messageApi.open({
+          type: 'success',
+          content: 'Login Completed Successfullyy!',
+        })
+      }, 2000)
+
+      console.log(res)
+      // Dispatching Action for login
+      dispatch(login(res.data.user))
+
+      // Move Login
+      navigate('/')
+    } else {
       messageApi.open({
-        type: 'success',
-        content: 'Login Completed Successfullyy!',
+        type: 'error',
+        content: 'Something went wrong!',
       })
-    }, 2000)
-
-    // Dispatching Action for login
-    dispatch(login(values))
-
-    // Move Login
-    navigate('/home')
+    }
   }
   return (
     <div>
@@ -102,6 +117,7 @@ const Login = () => {
             <Form.Item
               name='password'
               label='Password'
+              type='password'
               rules={[
                 { required: true, message: 'Please input your Password' },
                 {
@@ -109,7 +125,7 @@ const Login = () => {
                 },
               ]}
             >
-              <Input />
+              <Input type='password' />
             </Form.Item>
 
             <Form.Item>

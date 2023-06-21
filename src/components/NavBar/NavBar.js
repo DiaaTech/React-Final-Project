@@ -1,14 +1,15 @@
-import { Col, Row, Typography, Button, Avatar } from 'antd'
+import { Col, Row, Typography, Button, Avatar, Image } from 'antd'
 import React from 'react'
-import {
-  MailOutlined,
-  MessageOutlined,
-  BellFilled,
-  UserOutlined,
-} from '@ant-design/icons'
+import { MailOutlined, MessageOutlined, UserOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
+import { logout } from '../../redux/user'
 
 const NavBar = () => {
+  const user = useSelector((state) => state.user.user.payload)
+  const dispatch = useDispatch()
+  console.log(user)
   const navigate = useNavigate()
   return (
     <div>
@@ -17,23 +18,52 @@ const NavBar = () => {
         className='flex-h'
         style={{
           backgroundColor: 'white',
+          width: '100%',
           color: 'black',
           boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-          padding: '0px 30px',
         }}
       >
-        <Col span={12}>
-          <Typography.Title level={3}>SmartEd</Typography.Title>
+        <Col span={10}>
+          <img src={require('../../img/logo.png')} />
         </Col>
         <Col
-          span={12}
+          span={14}
           className='flex-h'
           style={{ justifyContent: 'space-between' }}
         >
-          <ul className='flex-h' style={{ gap: '20px', fontSize: '20px' }}>
-            <li>Home</li>
-            <li>Link 2</li>
-            <li>Link 3</li>
+          <ul className='flex-h' style={{ gap: '50px', fontSize: '20px' }}>
+            <li
+              onClick={() => {
+                navigate('/')
+              }}
+            >
+              Home
+            </li>
+
+            <li
+              onClick={() => {
+                navigate(`/profile/${user._id}`)
+              }}
+            >
+              Profile
+            </li>
+
+            <li
+              onClick={() => {
+                navigate(`/users`)
+              }}
+            >
+              Users
+            </li>
+
+            <li
+              onClick={() => {
+                dispatch(logout())
+                navigate('/')
+              }}
+            >
+              Logout
+            </li>
           </ul>
 
           <ul className='flex-h' style={{ fontSize: '16px' }}>
@@ -65,7 +95,7 @@ const NavBar = () => {
                 backgroundColor: '#ffffff',
               }}
               onClick={() => {
-                navigate('/profile')
+                navigate(`profile/${user._id}`)
               }}
             >
               <Avatar
